@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#151a22">
+<title>행렬식 돋보기</title>
+<meta name="description" content="77년이 0.02초로 — 여인수 전개와 행렬식의 성질, 넓이·부피의 배율과 부호, 행렬식이 0이거나 0에 가까울 때 데이터 분석에서 생기는 일을 손으로 체험하는 앱">
+<style>
+:root{--bg:#151a22;--card:#1c232e;--card2:#25303d;--fg:#eff3f8;--mut:#a3b0c2;--line:#33425a;
+--a:#7cc4ff;--b:#ff9b5c;--ok:#6fdc9a;--bad:#ff7d7d;--gold:#ffd166;--pur:#b79cff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.55}
+[hidden]{display:none!important}
+.wrap{max-width:560px;margin:0 auto;padding:12px 14px 40px}
+h1{font-size:1.2rem;margin:6px 0}
+h1 small{display:block;font-size:.76rem;color:var(--mut);font-weight:400}
+.tabs{display:flex;gap:5px;margin:10px 0}
+.tabs button{flex:1;padding:9px 2px;border:1px solid var(--line);background:var(--card);color:var(--mut);border-radius:10px;font-size:.84rem;font-weight:600}
+.tabs button.on{background:#24406e;color:#fff;border-color:var(--a)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+h2{font-size:1rem;margin:2px 0 8px}
+.note{font-size:.86rem;color:var(--mut);margin:8px 0 0}
+.note b{color:var(--fg)}
+.btn{padding:11px 14px;border-radius:12px;border:0;background:linear-gradient(135deg,#2f6fd0,#7cc4ff);color:#fff;font-weight:800;font-size:.95rem;flex:1}
+.btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--fg);font-weight:700}
+.btn.sm{flex:none;padding:7px 11px;font-size:.82rem}
+.btn:disabled{opacity:.4}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row+.row{margin-top:8px}
+.pill{padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:.84rem}
+.pill.on{border-color:var(--gold);background:#4a3e1a;color:#fff}
+canvas{display:block;width:100%;border-radius:12px;background:#10141b}
+.say{background:#16304c;border-left:3px solid var(--a);border-radius:8px;padding:9px 11px;font-size:.92rem;margin-top:10px}
+.say b{color:#fff}
+.say.q{border-left-color:var(--b);background:#2e2118}
+.res{margin-top:10px;font-size:.92rem;border-radius:10px;padding:10px 12px}
+.res.g{background:#16352a;border:1px solid #2f7a52}
+.res.r{background:#3a1d1d;border:1px solid #8a3a3a}
+.res.y{background:#3a3218;border:1px solid #8a7a3a}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.mat{display:inline-grid;gap:4px;padding:6px 10px;border-left:2px solid var(--fg);border-right:2px solid var(--fg);border-radius:6px}
+.mat input{width:46px;padding:7px 2px;text-align:center;border-radius:8px;border:1px solid var(--line);background:#10141b;color:var(--fg);font-size:1rem;font-family:"Times New Roman",serif;font-variant-numeric:tabular-nums}
+.mat span{display:inline-flex;align-items:center;justify-content:center;width:46px;height:36px;border-radius:8px;font-family:"Times New Roman",serif;font-size:1.05rem;font-variant-numeric:tabular-nums;transition:background .25s,opacity .25s}
+.mat span.hid{opacity:.15}
+.mat span.sel{background:#4a3e1a;color:var(--gold);font-weight:800}
+.mat span.minor{background:#1f3a5a}
+.mat span.flash{background:#1f5a3c}
+.mat span.diag{background:#3a2a5a;color:#fff;font-weight:800}
+.mat span.zero{color:#6fdc9a}
+.center{display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px}
+.signs{display:inline-grid;grid-template-columns:repeat(3,26px);gap:3px;font-weight:900;text-align:center}
+.signs b{border-radius:6px;padding:2px 0}
+.signs b.p{background:#1f5a3c}.signs b.m{background:#5a2626}
+.terms{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.terms div{background:var(--card2);border-radius:9px;padding:7px 10px;font-size:.86rem;font-family:ui-monospace,Menlo,Consolas,monospace}
+.terms div.skip{opacity:.5}
+.big{font-size:1.7rem;font-weight:900;text-align:center;margin-top:6px;font-variant-numeric:tabular-nums}
+.big small{display:block;font-size:.78rem;font-weight:400;color:var(--mut)}
+.sl{display:grid;grid-template-columns:84px 1fr 60px;gap:8px;align-items:center;font-size:.86rem;margin-top:8px}
+.sl input{width:100%}
+.sl b{text-align:right;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.two div{background:var(--card2);border-radius:10px;padding:8px 10px;text-align:center;font-size:.8rem;color:var(--mut)}
+.two div b{display:block;font-size:1.05rem;color:var(--fg);font-variant-numeric:tabular-nums}
+.ops{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.ops button{padding:9px 6px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:.82rem;font-weight:700}
+.detbar{display:flex;justify-content:space-between;align-items:center;background:#10141b;border-radius:10px;padding:8px 12px;margin-top:8px;font-variant-numeric:tabular-nums}
+.detbar b{font-size:1.3rem}
+.log{font-size:.8rem;margin-top:6px;max-height:110px;overflow:auto;background:#10141b;border-radius:10px;padding:6px 10px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.log div{padding:2px 0;border-bottom:1px solid #1e2836}
+.opts{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.opts button{text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:.9rem}
+.opts button.right{border-color:#6fdc9a;background:#16352a}
+.opts button.wrong{border-color:#ff7d7d;background:#3a1d1d}
+.ent{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:8px}
+.ent .s{display:grid;grid-template-columns:18px 1fr 40px;gap:6px;align-items:center;font-size:.86rem;font-family:"Times New Roman",serif}
+.ent .s input{width:100%}
+.ent .s b{text-align:right;font-family:-apple-system,sans-serif;font-variant-numeric:tabular-nums}
+table.dt{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:6px;font-variant-numeric:tabular-nums}
+table.dt th,table.dt td{padding:5px;border-bottom:1px solid var(--line);text-align:center}
+table.dt th{color:var(--mut);font-weight:600}
+.sum3{margin-top:12px;background:linear-gradient(135deg,#1d3358,#3a2a5a);border-radius:14px;padding:12px 14px}
+.sum3 ol{margin:4px 0;padding-left:20px;font-size:.92rem}
+.mine{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.mine div{display:flex;justify-content:space-between;gap:8px;background:var(--card2);border-radius:10px;padding:8px 10px;font-size:.88rem}
+.mine button{border:0;background:none;color:var(--mut);font-size:.9rem}
+input[type=text]{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#10141b;color:var(--fg);font-size:.92rem}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:999px;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+footer{text-align:center;color:var(--mut);font-size:.78rem;margin-top:18px}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🔍 행렬식 돋보기<small>77년이 0.02초로 — 행렬식이 재는 것과 그 성질</small></h1>
+<div class="tabs">
+  <button class="on" data-tab="t1">① 전개</button>
+  <button data-tab="t2">② 성질</button>
+  <button data-tab="t3">③ 넓이</button>
+  <button data-tab="t4">④ 0 근처</button>
+</div>
+
+<!-- ① 여인수 전개 -->
+<section id="tab-t1">
+  <div class="card">
+    <h2>✂️ 작게 쪼개기 — 여인수 전개</h2>
+    <p class="note" style="margin-top:0">한 원소의 행과 열을 가리면 남는 작은 행렬식 = <b>소행렬식</b>, 여기에 체스판 부호를 붙이면 <b>여인수</b>. 한 줄을 골라 "원소 × 여인수"를 모두 더하면 행렬식입니다. 숫자를 바꿔도 됩니다.</p>
+    <div class="center"><div class="mat" id="m1" style="grid-template-columns:repeat(3,auto)"></div><div><div class="note" style="margin:0 0 4px;font-size:.74rem">부호판</div><div class="signs"><b class="p">+</b><b class="m">−</b><b class="p">+</b><b class="m">−</b><b class="p">+</b><b class="m">−</b><b class="p">+</b><b class="m">−</b><b class="p">+</b></div></div></div>
+    <div class="row" style="margin-top:10px" id="exSel"><span class="note" style="margin:0">전개할 줄</span><button class="pill on" data-ex="r0">1행</button><button class="pill" data-ex="r1">2행</button><button class="pill" data-ex="r2">3행</button><button class="pill" data-ex="c0">1열</button><button class="pill" data-ex="c1">2열</button><button class="pill" data-ex="c2">3열</button></div>
+    <div class="center" id="minorView"></div>
+    <div class="terms" id="terms"></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="exStep">▶ 다음 항</button><button class="btn sec sm" id="exReset">↺ 예시로</button></div>
+    <div id="exMsg"></div>
+  </div>
+  <div class="card">
+    <h2>💥 전개의 함정 — 항의 수가 n!</h2>
+    <div class="sl"><span>행렬 크기 n</span><input type="range" id="nS" min="2" max="25" value="20"><b id="nV"></b></div>
+    <div class="two"><div>여인수 전개 (n! 항)<b id="fN" style="color:#ff9b5c"></b><span id="fT"></span></div><div>소거법 (약 n³/3)<b id="eN" style="color:#6fdc9a"></b><span id="eT"></span></div></div>
+    <p class="note">1초에 10억 번 곱셈하는 컴퓨터라고 가정. 실제로 넘파이로 1,000 × 1,000 행렬식을 구하면 한 컴퓨터에서 약 <b>0.02초</b>(환경에 따라 다름).</p>
+  </div>
+</section>
+
+<!-- ② 성질 -->
+<section id="tab-t2" hidden>
+  <div class="card">
+    <h2>🧪 성질 실험실 — 행렬식이 어떻게 변할까</h2>
+    <div class="center"><div class="mat" id="m2" style="grid-template-columns:repeat(3,auto)"></div></div>
+    <div class="detbar"><span>det =</span><b id="d2"></b><span id="d2c" style="font-size:.8rem;color:#a3b0c2"></span></div>
+    <div class="ops">
+      <button data-op="swap">🔄 1행 ↔ 2행 바꾸기</button>
+      <button data-op="scale">✖️ 1행에 3 곱하기</button>
+      <button data-op="add">➕ 1행의 2배를 3행에 더하기</button>
+      <button data-op="all">🔁 행렬 전체에 2 곱하기</button>
+      <button data-op="tr">↗️ 전치 (행↔열)</button>
+      <button data-op="elim">🪜 소거로 삼각 행렬 만들기</button>
+    </div>
+    <div class="row" style="margin-top:8px"><button class="btn sec sm" id="m2Reset">↺ 처음 (det 3)</button></div>
+    <div class="log" id="m2log"></div>
+    <div id="m2Msg"></div>
+  </div>
+  <div class="card">
+    <h2>❓ 퀴즈 ① 두 줄을 바꾸면</h2>
+    <div class="say q">행렬식이 <b>5</b>인 행렬에서 첫째 행과 둘째 행을 바꾸면?</div>
+    <div class="opts" id="q1"><button data-a="5">5</button><button data-a="-5">−5</button><button data-a="0">0</button></div>
+    <div id="q1Msg"></div>
+  </div>
+  <div class="card">
+    <h2>🤝 곱과 역행렬의 행렬식</h2>
+    <div class="say">det(AB) = det(A) × det(B) — 곱하고 나서 구하든, 구하고 나서 곱하든 같습니다.<br>det(A⁻¹) = 1 / det(A) — 행렬식이 3이면 역행렬의 행렬식은 ⅓. <b>0이면 역수가 없으니 역행렬도 없습니다.</b></div>
+    <div class="row" style="margin-top:8px"><button class="btn sec" id="abGo">🎲 무작위 A, B로 확인</button></div>
+    <div id="abOut"></div>
+  </div>
+</section>
+
+<!-- ③ 넓이·부피 -->
+<section id="tab-t3" hidden>
+  <div class="card">
+    <h2>📐 행렬식 = 넓이의 배율</h2>
+    <p class="note" style="margin-top:0">가로 1, 세로 1인 정사각형(🅵 글자가 그려진)이 행렬의 두 열을 따라 평행사변형이 됩니다.</p>
+    <div class="row" id="pre3"><button class="pill on" data-p="ex">[2 1; 1 1]</button><button class="pill" data-p="dbl">넓이 2배</button><button class="pill" data-p="half">절반</button><button class="pill" data-p="flip">↔️ 뒤집기</button><button class="pill" data-p="flat">🥞 0</button></div>
+    <div class="ent" id="ent3"></div>
+    <canvas id="cv3" style="margin-top:8px"></canvas>
+    <div class="big" id="area3"></div>
+    <div id="a3Msg"></div>
+  </div>
+  <div class="card">
+    <h2>❓ 퀴즈 ② 전체를 두 배로</h2>
+    <div class="say q">행렬식이 <b>3</b>인 <b>3 × 3</b> 행렬의 모든 원소에 2를 곱했습니다. 새 행렬식은?</div>
+    <div class="opts" id="q2"><button data-a="6">6</button><button data-a="9">9</button><button data-a="24">24</button></div>
+    <div id="q2Msg"></div>
+  </div>
+  <div class="card">
+    <h2>🧊 3차원에서는 부피의 배율</h2>
+    <p class="note" style="margin-top:0">정육면체가 평행육면체가 되고, 행렬식은 <b>부피의 배율</b>입니다. 행렬 전체에 k를 곱하면 가로·세로·높이가 모두 k배 → 부피는 k³배. <b>차원의 개수만큼 거듭제곱</b>.</p>
+    <div class="sl"><span>k</span><input type="range" id="kS" min="0.5" max="3" step="0.5" value="2"><b id="kV"></b></div>
+    <table class="dt" id="kT"></table>
+  </div>
+</section>
+
+<!-- ④ 0에 가까우면 -->
+<section id="tab-t4" hidden>
+  <div class="card">
+    <h2>🥞 행렬식이 0 — 선형 종속</h2>
+    <p class="note" style="margin-top:0">한 열이 다른 열들로 만들어지면 새로운 방향을 하나도 더하지 못해 공간이 납작해집니다. 같은 행이 두 개거나, 한 행이 다른 행의 배수여도 계산할 필요 없이 0.</p>
+    <div class="row"><button class="pill on" data-dep="same">같은 행 두 개</button><button class="pill" data-dep="mult">한 행이 2배</button><button class="pill" data-dep="sum">3행 = 1행 + 2행</button></div>
+    <div class="center"><div class="mat" id="m4" style="grid-template-columns:repeat(3,auto)"></div><div class="big" id="d4" style="margin:0"></div></div>
+  </div>
+  <div class="card">
+    <h2>📏 데이터 분석의 함정 — 키를 cm와 m로 두 번</h2>
+    <p class="note" style="margin-top:0">가상의 100명. 회귀 계수를 구하려면 데이터 행렬 X로 만든 정사각 행렬 <b class="mono">XᵀX</b>의 역행렬이 필요합니다.</p>
+    <div class="row"><button class="pill on" data-col="m">키(cm) + 키(m)</button><button class="pill" data-col="w">키(cm) + 몸무게(kg)</button></div>
+    <table class="dt" id="xT"></table>
+    <div class="big" id="xDet"></div>
+    <div id="xMsg"></div>
+  </div>
+  <div class="card">
+    <h2>😰 0에 가까운 행렬식 — 병약한 행렬</h2>
+    <p class="note" style="margin-top:0">x + y = 2, &nbsp;x + (1+ε)y = b₂ &nbsp;— 두 직선이 거의 평행합니다.</p>
+    <div class="sl"><span>ε</span><input type="range" id="eps" min="1" max="5" step="1" value="4"><b id="epsV"></b></div>
+    <div class="sl"><span>b₂ 바꾸기</span><input type="range" id="b2" min="0" max="3" step="1" value="1"><b id="b2V"></b></div>
+    <canvas id="cv4" style="margin-top:8px"></canvas>
+    <div class="two"><div>답 (x, y)<b id="sol"></b></div><div>조건수 (예민함)<b id="cond"></b></div></div>
+    <div id="cMsg"></div>
+  </div>
+  <div class="card">
+    <h2>📌 세 줄 정리</h2>
+    <div class="sum3"><ol>
+      <li>여인수 전개는 원리는 쉽지만 계산량이 <b>폭발</b>하고, "행 더하기는 행렬식을 바꾸지 않는다"는 성질로 <b>소거법</b>을 쓰면 빠르다.</li>
+      <li>행렬식의 <b>크기</b>는 넓이·부피의 배율, <b>부호</b>는 방향이 뒤집혔는지를 뜻한다.</li>
+      <li>행렬식이 <b>0</b>이면 정보가 눌려 되돌릴 수 없고, <b>0에 가까우면</b> 계산이 불안정해진다.</li>
+    </ol></div>
+  </div>
+  <div class="card">
+    <h2>🤔 생각해 볼 질문</h2>
+    <p class="note" style="margin-top:0">여러분의 데이터에서 <b>사실상 같은 정보</b>를 담은 두 변수를 찾아 적어 보세요. 예: 총 가격 vs 개당 가격 × 개수, 월급 vs 연봉. (이 기기에만 저장)</p>
+    <div class="row" style="margin-top:8px"><input type="text" id="myIn" maxlength="60" placeholder="예: 총 가격 ↔ 개당 가격 × 개수"><button class="btn sm" id="myAdd">추가</button></div>
+    <div class="mine" id="mine"></div>
+  </div>
+</section>
+
+<footer>© 2026 정필 수심명 · <a href="https://blog.naver.com/omyman" target="_blank" rel="noopener">blog.naver.com/omyman</a><br>선형대수 04 부록 · 인터넷 없이 동작</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),1800);}
+const vib=n=>{try{navigator.vibrate&&navigator.vibrate(n);}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function prep(cv,ratio){const dpr=Math.min(2,window.devicePixelRatio||1),w=cv.clientWidth||320,h=Math.round(w*ratio);
+  cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return{c,w,h};}
+function T(c,s,x,y,col,size,al,bl,wt){c.fillStyle=col;c.font=`${wt||''} ${size||12}px -apple-system,"Malgun Gothic",sans-serif`;c.textAlign=al||'center';c.textBaseline=bl||'middle';c.fillText(s,x,y);}
+const nf=v=>{const r=Math.round(v*1000)/1000;return (Object.is(r,-0)?0:r).toLocaleString(undefined,{maximumFractionDigits:3}).replace('-','−');};
+const det2=m=>m[0][0]*m[1][1]-m[0][1]*m[1][0];
+const det3=m=>m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+const KR=n=>{if(n>=1e16)return(n/1e16).toFixed(n>=1e17?0:1)+'경';if(n>=1e12)return(n/1e12).toFixed(1)+'조';if(n>=1e8)return(n/1e8).toFixed(1)+'억';if(n>=1e4)return(n/1e4).toLocaleString(undefined,{maximumFractionDigits:1})+'만';return Math.round(n).toLocaleString();};
+function dur(s){if(s<1e-3)return'1밀리초 미만';if(s<1)return(s*1000).toFixed(0)+'밀리초';if(s<60)return s.toFixed(1)+'초';if(s<3600)return(s/60).toFixed(0)+'분';if(s<86400)return(s/3600).toFixed(1)+'시간';if(s<3.156e7)return(s/86400).toFixed(0)+'일';const y=s/3.156e7;return y<1e4?y.toFixed(0)+'년':KR(y)+'년';}
+
+/* ===== ① 여인수 전개 ===== */
+const EX=[[2,0,1],[1,3,2],[0,1,1]];let M1=EX.map(r=>r.slice()),ex='r0',step=-1;
+function drawM1(sel,minor){$('#m1').innerHTML=M1.map((r,i)=>r.map((v,j)=>`<input type="number" value="${v}" data-i="${i}" data-j="${j}" style="${sel&&sel[0]===i&&sel[1]===j?'background:#4a3e1a;color:#ffd166;font-weight:800':minor&&minor.some(([a,b])=>a===i&&b===j)?'background:#1f3a5a':sel&&(sel[0]===i||sel[1]===j)?'opacity:.3':''}">`).join('')).join('');
+  $$('#m1 input').forEach(inp=>inp.onchange=()=>{const v=Math.max(-9,Math.min(9,Math.round(+inp.value)||0));M1[+inp.dataset.i][+inp.dataset.j]=v;resetEx(true);});}
+function entries(){const k=+ex[1];return [0,1,2].map(t=>ex[0]==='r'?[k,t]:[t,k]);}
+function minorOf(i,j){return M1.filter((_,a)=>a!==i).map(r=>r.filter((_,b)=>b!==j));}
+function resetEx(keep){if(!keep)M1=EX.map(r=>r.slice());step=-1;drawM1();$('#terms').innerHTML='';$('#minorView').innerHTML='';$('#exStep').disabled=false;
+  const zr=[0,1,2].map(i=>M1[i].filter(v=>v===0).length),zc=[0,1,2].map(j=>M1.filter(r=>r[j]===0).length);
+  const best=Math.max(...zr,...zc);$('#exMsg').innerHTML=`<div class="say">💡 요령: <b>0이 가장 많은 줄</b>로 전개하면 계산이 줄어듭니다. 지금 행렬은 0이 최대 ${best}개인 줄이 있어요. 어느 줄로 전개해도 결과는 같습니다.</div>`;}
+$$('#exSel .pill').forEach(b=>b.onclick=()=>{$$('#exSel .pill').forEach(x=>x.classList.toggle('on',x===b));ex=b.dataset.ex;resetEx(true);});
+$('#exStep').onclick=()=>{const es=entries();step++;if(step>=3)return;const [i,j]=es[step],v=M1[i][j],sg=(i+j)%2?-1:1,mn=minorOf(i,j),md=det2(mn);
+  const mcells=[];for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(a!==i&&b!==j)mcells.push([a,b]);drawM1([i,j],mcells);
+  $('#minorView').innerHTML=`<span class="mono" style="font-size:.84rem">소행렬식 =</span><div class="mat" style="grid-template-columns:repeat(2,auto)">${mn.flat().map(x=>`<span class="minor">${x}</span>`).join('')}</div><span class="mono" style="font-size:.84rem">= ${mn[0][0]}×${mn[1][1]} − ${mn[0][1]}×${mn[1][0]} = <b>${md}</b></span>`;
+  const term=v*sg*md;$('#terms').insertAdjacentHTML('beforeend',`<div class="${v===0?'skip':''}">(${i+1},${j+1}) 부호 ${sg>0?'+':'−'} · 원소 ${v} × 소행렬식 ${md} = <b>${v===0?'0 (계산할 필요 없음!)':(sg>0?'+':'−')+Math.abs(v*md)}</b></div>`);vib(15);
+  if(step===2){$('#exStep').disabled=true;const d=det3(M1);$('#terms').insertAdjacentHTML('beforeend',`<div style="background:#1f5a3c"><b>합계 = det = ${d}</b></div>`);
+    $('#exMsg').innerHTML=`<div class="res g">✅ 행렬식 = <b>${d}</b>. ${M1.toString()===EX.toString()&&ex==='r0'?'원고의 예시: 2×(3−2) + 0 + 1×(1−0) = 3. ':''}다른 줄을 골라 다시 전개해도 같은 값이 나오는지 확인해 보세요.</div>`;}};
+$('#exReset').onclick=()=>resetEx(false);
+function fact(){const n=+$('#nS').value;$('#nV').textContent=n+'×'+n;let f=1;for(let i=2;i<=n;i++)f*=i;const e=n**3/3;
+  $('#fN').textContent=KR(f)+'번';$('#fT').textContent=dur(f/1e9);$('#eN').textContent=KR(e)+'번';$('#eT').textContent=dur(e/1e9);}
+$('#nS').addEventListener('input',fact);
+
+/* ===== ② 성질 실험실 ===== */
+let M2=EX.map(r=>r.slice()),flash=[],diag=false;const L2=[];
+function drawM2(){$('#m2').innerHTML=M2.map((r,i)=>r.map((v,j)=>`<span class="${flash.includes(i)?'flash':''} ${diag&&i===j?'diag':''} ${diag&&i>j&&Math.abs(v)<1e-9?'zero':''}">${nf(v)}</span>`).join('')).join('');
+  const d=det3(M2);$('#d2').textContent=nf(d);$('#d2').style.color=d<0?'#ff9b5c':'#6fdc9a';$('#m2log').innerHTML=L2.map(l=>`<div>${l}</div>`).join('')||'<div style="color:#55667f">버튼을 눌러 행렬식이 어떻게 변하는지 보세요</div>';}
+function op(kind){const before=det3(M2);let msg='';flash=[];diag=false;
+  if(kind==='swap'){[M2[0],M2[1]]=[M2[1],M2[0]];flash=[0,1];msg='두 행을 바꾸면 <b>부호가 바뀝니다</b>. 크기는 그대로! (두 축의 순서가 바뀌어 방향이 뒤집힘)';}
+  else if(kind==='scale'){M2[0]=M2[0].map(v=>v*3);flash=[0];msg='한 행에 k를 곱하면 행렬식도 <b>k배</b>.';}
+  else if(kind==='add'){M2[2]=M2[2].map((v,j)=>v+2*M2[0][j]);flash=[2];msg='한 행의 몇 배를 다른 행에 더해도 행렬식은 <b>변하지 않습니다</b> — 가장 중요한 성질! 가우스 소거법의 행 더하기.';}
+  else if(kind==='all'){M2=M2.map(r=>r.map(v=>v*2));flash=[0,1,2];msg='행렬 <b>전체</b>에 2를 곱하면 모든 행에 곱한 것 → 2³ = <b>8배</b>. (3×3이니까)';}
+  else if(kind==='tr'){M2=[0,1,2].map(i=>[0,1,2].map(j=>M2[j][i]));flash=[0,1,2];msg='전치해도 행렬식은 <b>그대로</b>. 그래서 행에 대한 성질은 열에도 그대로 성립합니다.';}
+  else if(kind==='elim'){let sw=0;const A=M2.map(r=>r.slice());for(let k=0;k<3;k++){let p=k;while(p<3&&Math.abs(A[p][k])<1e-12)p++;if(p===3)continue;if(p!==k){[A[p],A[k]]=[A[k],A[p]];sw++;}for(let i=k+1;i<3;i++){const f=A[i][k]/A[k][k];for(let j=k;j<3;j++)A[i][j]-=f*A[k][j];}}
+    M2=A;diag=true;const prod=A[0][0]*A[1][1]*A[2][2];msg=`행 더하기(${sw?`+ 행 교환 ${sw}번`:'만'})로 아래쪽을 0으로 → <b>삼각 행렬</b>. 행렬식 = 대각선 곱 ${nf(A[0][0])} × ${nf(A[1][1])} × ${nf(A[2][2])} = <b>${nf(prod)}</b>${sw%2?' → 행 교환이 홀수 번이라 부호 반대':''}. 계산량이 n!이 아니라 약 n³/3 — <b>77년이 순식간으로</b>!`;}
+  const after=det3(M2);const lab={swap:'1행↔2행',scale:'1행 ×3',add:'3행 += 2×1행',all:'전체 ×2',tr:'전치',elim:'소거→삼각'}[kind];
+  L2.unshift(`${lab}: ${nf(before)} → ${nf(after)}${Math.abs(before)>1e-9&&Math.abs(after-before)>1e-9?` (×${nf(after/before)})`:Math.abs(after-before)<1e-9?' (그대로)':''}`);
+  $('#d2c').textContent=`(이전 ${nf(before)})`;drawM2();$('#m2Msg').innerHTML=`<div class="say">${msg}</div>`;vib(15);}
+$$('[data-op]').forEach(b=>b.onclick=()=>op(b.dataset.op));
+$('#m2Reset').onclick=()=>{M2=EX.map(r=>r.slice());flash=[];diag=false;L2.length=0;$('#d2c').textContent='';$('#m2Msg').innerHTML='';drawM2();};
+$$('#q1 button').forEach(b=>b.onclick=()=>{const ok=b.dataset.a==='-5';$$('#q1 button').forEach(x=>x.className=x.dataset.a==='-5'?'right':x===b?'wrong':'');vib(ok?[30,40,60]:80);
+  $('#q1Msg').innerHTML=`<div class="res ${ok?'g':'r'}">${ok?'🎉 정답!':'아쉽네요.'} 정답은 <b>−5</b>. 크기는 그대로, 부호만 바뀝니다. 같은 두 줄을 한 번 더 바꾸면 부호가 두 번 바뀌어 다시 5. (위 실험실에서 🔄을 두 번 눌러 보세요)</div>`;});
+$('#abGo').onclick=()=>{const r=()=>Math.floor(Math.random()*7)-3;const A=[[r(),r()],[r(),r()]],B=[[r(),r()],[r(),r()]];const AB=[[A[0][0]*B[0][0]+A[0][1]*B[1][0],A[0][0]*B[0][1]+A[0][1]*B[1][1]],[A[1][0]*B[0][0]+A[1][1]*B[1][0],A[1][0]*B[0][1]+A[1][1]*B[1][1]]];
+  const m=x=>`[${x[0].join(' ')}; ${x[1].join(' ')}]`;const dA=det2(A),dB=det2(B),dAB=det2(AB);
+  $('#abOut').innerHTML=`<div class="res g mono" style="font-size:.84rem">A = ${m(A)} → det ${dA}<br>B = ${m(B)} → det ${dB}<br>AB = ${m(AB)} → det <b>${dAB}</b><br>det A × det B = ${dA} × ${dB} = <b>${dA*dB}</b> ${dAB===dA*dB?'✅ 같음':''}${dA!==0?`<br>det(A⁻¹) = 1/${dA} = ${nf(1/dA)}`:'<br>det A = 0 → A⁻¹ 없음'}</div>`;vib(20);};
+
+/* ===== ③ 넓이 ===== */
+const P3={ex:[2,1,1,1],dbl:[2,0,0,1],half:[0.5,0,0,1],flip:[-1,0,0,1],flat:[2,4,1,2]};let A3=P3.ex.slice();
+function ent3(){$('#ent3').innerHTML=[['a',0],['b',1],['c',2],['d',3]].map(([l,k])=>`<div class="s"><span>${l}</span><input type="range" min="-3" max="3" step="0.25" value="${A3[k]}" data-k="${k}"><b>${nf(A3[k])}</b></div>`).join('');
+  $$('#ent3 input').forEach(inp=>inp.addEventListener('input',()=>{A3[+inp.dataset.k]=+inp.value;inp.nextElementSibling.textContent=nf(+inp.value);$$('#pre3 .pill').forEach(x=>x.classList.remove('on'));draw3();}));}
+function draw3(){const [a,b,c,d]=A3,D=a*d-b*c;const {c:g,w,h}=prep($('#cv3'),0.8);g.clearRect(0,0,w,h);const sc=w/10,ox=w/2,oy=h/2,P=(x,y)=>[ox+(a*x+b*y)*sc,oy-(c*x+d*y)*sc];
+  g.strokeStyle='#1c2430';for(let k=-10;k<=10;k++){g.beginPath();g.moveTo(ox+k*sc,0);g.lineTo(ox+k*sc,h);g.stroke();g.beginPath();g.moveTo(0,oy-k*sc);g.lineTo(w,oy-k*sc);g.stroke();}
+  g.strokeStyle='#33425a';g.lineWidth=1.5;g.setLineDash([4,4]);g.strokeRect(ox,oy-sc,sc,sc);g.setLineDash([]);
+  const q=[[0,0],[1,0],[1,1],[0,1]].map(([x,y])=>P(x,y));g.beginPath();q.forEach((p,i)=>i?g.lineTo(...p):g.moveTo(...p));g.closePath();g.fillStyle=Math.abs(D)<1e-9?'rgba(255,125,125,.4)':D<0?'rgba(255,155,92,.3)':'rgba(124,196,255,.3)';g.fill();g.strokeStyle=D<0?'#ff9b5c':'#7cc4ff';g.lineWidth=2;g.stroke();
+  // F 글자
+  const F=[[[0.3,0.15],[0.3,0.85]],[[0.3,0.85],[0.7,0.85]],[[0.3,0.5],[0.6,0.5]]];g.strokeStyle='#ffd166';g.lineWidth=3;F.forEach(([p1,p2])=>{g.beginPath();g.moveTo(...P(...p1));g.lineTo(...P(...p2));g.stroke();});
+  const arr=(x,y,col)=>{const [x1,y1]=P(x,y);g.strokeStyle=col;g.lineWidth=3;g.beginPath();g.moveTo(ox,oy);g.lineTo(x1,y1);g.stroke();};arr(1,0,'#ff9b5c');arr(0,1,'#6fdc9a');
+  $('#area3').innerHTML=`det = ${nf(D)}<small>넓이 ${nf(Math.abs(D))}배${D<0?' · 방향 뒤집힘(🅵이 거울에 비친 모양)':''}${Math.abs(D)<1e-9?' · 납작!':''}</small>`;$('#area3').style.color=Math.abs(D)<1e-9?'#ff7d7d':D<0?'#ff9b5c':'#7cc4ff';
+  $('#a3Msg').innerHTML=`<div class="say">${Math.abs(D)<1e-9?'🥞 행렬식 0 → 넓이 0. 평면이 <b>직선으로 납작</b>하게 눌렸습니다(서로 다른 점이 한 점으로 겹쳐 되돌릴 수 없음).':D<0?'🪞 넓이는 음수가 될 수 없지만 행렬식은 음수 — 공간이 <b>거울에 비친 것처럼 뒤집혔다</b>는 뜻. 🅵이 좌우가 바뀌었지요? <b>크기 = 넓이 배율, 부호 = 방향</b>.':`<b>ad − bc</b> = ${nf(a)}×${nf(d)} − ${nf(b)}×${nf(c)} = ${nf(D)} = 평행사변형의 넓이. 행렬식이 2면 두 배, 0.5면 절반, 1이면 그대로.`}</div>`;}
+$$('#pre3 .pill').forEach(b=>b.onclick=()=>{$$('#pre3 .pill').forEach(x=>x.classList.toggle('on',x===b));A3=P3[b.dataset.p].slice();ent3();draw3();});
+$$('#q2 button').forEach(b=>b.onclick=()=>{const ok=b.dataset.a==='24';$$('#q2 button').forEach(x=>x.className=x.dataset.a==='24'?'right':x===b?'wrong':'');vib(ok?[30,40,60]:80);
+  $('#q2Msg').innerHTML=`<div class="res ${ok?'g':'r'}">${ok?'🎉 정답!':'아쉽네요.'} 정답은 <b>24</b>. 세 행 모두에 2를 곱한 셈이라 2×2×2 = 8배 → 3 × 8 = 24. 부피로 보면 가로·세로·높이가 모두 두 배 → 부피 8배. (2×2였다면 2² = 4배)</div>`;});
+function kTab(){const k=+$('#kS').value;$('#kV').textContent=k;$('#kT').innerHTML='<tr><th>차원</th><th>배율</th><th>det 3인 행렬 전체 ×'+k+'</th></tr>'+[[2,'넓이'],[3,'부피'],[4,'4차원 부피']].map(([n,l])=>`<tr><td>${n}×${n} (${l})</td><td>${k}<sup>${n}</sup> = ${nf(k**n)}배</td><td>${nf(3*k**n)}</td></tr>`).join('');}
+$('#kS').addEventListener('input',kTab);
+
+/* ===== ④ 종속 ===== */
+const DEP={same:[[1,2,3],[4,5,6],[1,2,3]],mult:[[1,2,3],[2,4,6],[0,1,5]],sum:[[1,2,3],[0,1,4],[1,3,7]]};
+function dep(k){const m=DEP[k];$('#m4').innerHTML=m.map((r,i)=>r.map(v=>`<span class="${(k==='same'&&(i===0||i===2))||(k==='mult'&&i<2)||(k==='sum')?'minor':''}">${v}</span>`).join('')).join('');$('#d4').innerHTML=`det = ${det3(m)}`;$('#d4').style.color='#ff7d7d';}
+$$('[data-dep]').forEach(b=>b.onclick=()=>{$$('[data-dep]').forEach(x=>x.classList.toggle('on',x===b));dep(b.dataset.dep);});
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const PEOPLE=(()=>{const R=rng(4),o=[];const z=()=>{const u=Math.max(1e-12,R()),v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};for(let i=0;i<100;i++){const cm=Math.round((170+8*z())*10)/10;o.push([cm,Math.round((cm*0.9-90+6*z())*10)/10]);}return o;})();
+let xc='m';
+function xtx(){const cols=PEOPLE.map(([cm,kg])=>[cm,xc==='m'?cm/100:kg]);let a=0,b=0,d=0;cols.forEach(([u,v])=>{a+=u*u;b+=u*v;d+=v*v;});const D=a*d-b*b,scale=a*d;
+  $('#xT').innerHTML=`<tr><th>사람</th><th>키(cm)</th><th>${xc==='m'?'키(m)':'몸무게(kg)'}</th></tr>`+cols.slice(0,4).map((r,i)=>`<tr><td>${i+1}</td><td>${r[0].toFixed(1)}</td><td>${xc==='m'?r[1].toFixed(3):r[1].toFixed(1)}</td></tr>`).join('')+'<tr><td colspan="3" style="color:#55667f">… 100명</td></tr>';
+  const rel=Math.abs(D)/scale;$('#xDet').innerHTML=`det(XᵀX) ${rel<1e-10?'≈ 0':'= '+D.toExponential(2)}<small>${rel<1e-10?`계산값 ${D.toExponential(1)} — 원소 크기(약 ${scale.toExponential(0)})에 비하면 <b>컴퓨터 계산 오차 수준</b>`:'0과 거리가 멂 → 역행렬을 구할 수 있음'}</small>`;$('#xDet').style.color=rel<1e-10?'#ff7d7d':'#6fdc9a';
+  $('#xMsg').innerHTML=rel<1e-10?'<div class="res r">⚠️ 키(m) = 키(cm) ÷ 100 — 두 열이 <b>완벽하게 비례</b>(선형 종속). XᵀX의 행렬식이 사실상 0이라 역행렬을 믿을 수 없고, 모델이 학습을 못 합니다. 이것이 <b>다중 공선성</b>. 같은 정보를 담은 변수를 <b>중복으로 넣지 않는 것</b>이 데이터 준비의 기본!</div>':'<div class="res g">✅ 키와 몸무게는 관련은 있어도 완벽히 비례하지 않아 서로 다른 정보를 줍니다. 행렬식이 0에서 멀어 안정적으로 풀립니다.</div>';}
+$$('[data-col]').forEach(b=>b.onclick=()=>{$$('[data-col]').forEach(x=>x.classList.toggle('on',x===b));xc=b.dataset.col;xtx();});
+/* ④ 병약 */
+function ill(){const e=Math.pow(10,-(+$('#eps').value)),db=+$('#b2').value*e;$('#epsV').textContent='10⁻'+'⁰¹²³⁴⁵'[+$('#eps').value];const b2=2+db;$('#b2V').textContent=b2.toFixed(+$('#eps').value);
+  // x + y = 2 ; x + (1+e) y = b2  → y = (b2-2)/e , x = 2 - y
+  const y=(b2-2)/e,x=2-y;$('#sol').textContent=`(${nf(x)}, ${nf(y)})`;
+  const a=1,b=1,c=1,d=1+e;const s1=a*a+c*c,s2=b*b+d*d,s12=a*b+c*d;const tr=s1+s2,dt=s1*s2-s12*s12,l1=tr/2+Math.sqrt(tr*tr/4-dt),l2=tr/2-Math.sqrt(tr*tr/4-dt);const cond=Math.sqrt(l1/l2);
+  $('#cond').textContent='약 '+KR(cond);
+  const {c:g,w,h}=prep($('#cv4'),0.55);g.clearRect(0,0,w,h);const X0=-1,X1=4,Y0=-1,Y1=4,sx=v=>(v-X0)/(X1-X0)*w,sy=v=>h-(v-Y0)/(Y1-Y0)*h;
+  g.strokeStyle='#1c2430';for(let k=-1;k<=4;k++){g.beginPath();g.moveTo(sx(k),0);g.lineTo(sx(k),h);g.stroke();g.beginPath();g.moveTo(0,sy(k));g.lineTo(w,sy(k));g.stroke();}
+  const line=(f,col)=>{g.strokeStyle=col;g.lineWidth=2.5;g.beginPath();g.moveTo(sx(X0),sy(f(X0)));g.lineTo(sx(X1),sy(f(X1)));g.stroke();};
+  line(t=>2-t,'#7cc4ff');line(t=>(b2-t)/(1+e),'#ff9b5c');if(x>X0&&x<X1&&y>Y0&&y<Y1){g.beginPath();g.arc(sx(x),sy(y),7,0,7);g.fillStyle='#ffd166';g.fill();}
+  T(g,'두 직선이 거의 겹쳐 보입니다',8,12,'#a3b0c2',11,'left');
+  $('#cMsg').innerHTML=`<div class="${+$('#b2').value>1?'res r':'say'}">행렬식 = ε = <b>${e}</b>. ${+$('#eps').value===4?'원고의 예: b₂ = 2.0001이면 답 (1, 1), <b>0.0001만</b> 바꿔 2.0002로 하면 답이 (0, 2)로 확 바뀝니다. ':''}입력이 ${e}만큼 바뀔 때마다 답이 크게 흔들립니다 — <b>병약한</b> 행렬. 얼마나 예민한지를 재는 <b>조건수</b>가 약 ${KR(cond)}. 측정값에 작은 오차만 있어도 결과를 믿을 수 없습니다.</div>`;}
+['eps','b2'].forEach(id=>$('#'+id).addEventListener('input',ill));
+
+/* ===== 나의 예 ===== */
+const MK='detlens.mine';let mine=[];try{mine=JSON.parse(localStorage.getItem(MK)||'[]');if(!Array.isArray(mine))mine=[];}catch(e){mine=[];}
+const saveM=()=>{try{localStorage.setItem(MK,JSON.stringify(mine));}catch(e){}};
+function drawMine(){$('#mine').innerHTML=mine.length?mine.map((m,i)=>`<div><span>🔁 ${esc(m)}</span><button data-d="${i}" aria-label="지우기">✕</button></div>`).join(''):'<p class="note">그런 변수를 찾아 정리하는 것이 모델을 안정시키는 첫걸음입니다.</p>';
+  $$('#mine button').forEach(b=>b.onclick=()=>{mine.splice(+b.dataset.d,1);saveM();drawMine();});}
+$('#myAdd').onclick=()=>{const v=$('#myIn').value.trim();if(!v)return;mine.unshift(v);mine=mine.slice(0,30);saveM();$('#myIn').value='';drawMine();toast('중복 변수 하나 발견!');};
+$('#myIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#myAdd').click();});
+
+/* ===== 탭 ===== */
+function show(t){$$('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.tab===t));['t1','t2','t3','t4'].forEach(k=>$('#tab-'+k).hidden=k!==t);if(t==='t3')draw3();if(t==='t4')ill();window.scrollTo(0,0);}
+$$('.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
+window.addEventListener('resize',()=>{if(!$('#tab-t3').hidden)draw3();if(!$('#tab-t4').hidden)ill();});
+resetEx(false);fact();drawM2();ent3();draw3();kTab();dep('same');xtx();ill();drawMine();
+})();
+</script>
+</body>
+</html>
